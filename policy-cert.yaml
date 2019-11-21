@@ -1,0 +1,57 @@
+apiVersion: policy.mcm.ibm.com/v1alpha1
+kind: Policy
+metadata:
+  name: policy-certificatepolicy
+  namespace: kube-system
+  annotations:
+    policy.mcm.ibm.com/standards: NIST
+    policy.mcm.ibm.com/categories: SystemAndCommunicationsProtections
+    policy.mcm.ibm.com/controls: DataInTransit
+spec:
+  complianceType: musthave
+  remediationAction: inform
+  namespaces:
+    exclude: ["kube-*"]
+    include: ["default"]
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policies.ibm.com/v1alpha1
+        kind: CertificatePolicy # cert management expiration
+        metadata:
+          name: policy-certificatepolicy-example
+          label:
+            category: "System-Integrity"
+        spec:
+          namespaceSelector:
+            include: ["default"]
+            exclude: []
+          remediationAction: inform
+          severity: low
+          minimumDuration: 300h
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-certificatepolicy
+  namespace: kube-system
+placementRef:
+  name: placement-policy-certificatepolicy
+  kind: PlacementPolicy
+  apiGroup: mcm.ibm.com
+subjects:
+- name: policy-certificatepolicy
+  kind: Policy
+  apiGroup: policy.mcm.ibm.com
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementPolicy
+metadata:
+  name: placement-policy-certificatepolicy
+  namespace: kube-system
+spec:
+  clusterLabels:
+    matchExpressions:
+    - key: cloud
+      operator: In
+      values:
+      - IBM

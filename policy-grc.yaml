@@ -1,0 +1,43 @@
+apiVersion: policy.mcm.ibm.com/v1alpha1
+kind: Policy
+metadata:
+  name: policy-grc
+  namespace: kube-system
+  annotations:
+    policy.mcm.ibm.com/standards: PCI
+    policy.mcm.ibm.com/categories: SystemAndInformationIntegrity
+    policy.mcm.ibm.com/controls: DataInTransit
+spec:
+  complianceType: musthave
+  remediationAction: inform
+  namespaces:
+    exclude: ["kube-*"]
+    include: ["default"]
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementBinding
+metadata:
+  name: binding-policy-grc
+  namespace: kube-system
+placementRef:
+  name: placement-policy-grc
+  kind: PlacementPolicy
+  apiGroup: mcm.ibm.com
+subjects:
+- name: policy-grc
+  kind: Policy
+  apiGroup: policy.mcm.ibm.com
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementPolicy
+metadata:
+  name: placement-policy-grc
+  namespace: kube-system
+spec:
+  clusterLabels:
+    matchExpressions:
+    - key: cloud
+      operator: In
+      values:
+      - IBM
+      - AWS
